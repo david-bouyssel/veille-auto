@@ -13,6 +13,7 @@ import argparse
 import json
 import re
 import shutil
+import subprocess
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -27,7 +28,21 @@ VENDOR = ROOT / "vendor"
 
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 MOD_FORMATS = {"MOD", "XM", "IT", "S3M"}
+# Version affichée en bas de page : 0.0.N, N = commits depuis BASE_COMMITS.
+# Le commit qui a introduit ce numéro est la version 0.0.1. Indépendant des tags.
+BASE_COMMITS = 17
+
 REQUIRED = ("rubrique", "source", "titre", "resume", "pourquoi", "url")
+
+
+def version() -> str:
+    """Numéro de version déduit du nombre de commits (historique complet requis)."""
+    try:
+        out = subprocess.run(["git", "rev-list", "--count", "HEAD"], cwd=ROOT, capture_output=True,
+                             text=True, check=True).stdout.strip()
+        return f"0.0.{max(int(out) - BASE_COMMITS, 0)}"
+    except (OSError, subprocess.CalledProcessError, ValueError):
+        return "0.0.0"
 
 
 def check_item(item: object, where: str, rubriques: set[str]) -> list[str]:
@@ -179,7 +194,7 @@ def render(template: str, cfg: dict, mods_cfg: dict, editions: list[dict], idx: 
             "suivante": f"{editions[idx + 1]['date']}.html" if idx + 1 < len(editions) and not is_index else None,
         },
     }
-    page = template.replace("__DATA__", to_script_json(data))
+    page = template.replace("__DATA__", to_script_json(data)).replace("__VERSION__", version())
     return page.replace("__TITRE__", f"Le Petit Compilé · n° {ed['numero']} · {ed['date']}")
 
 

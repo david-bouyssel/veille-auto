@@ -138,6 +138,10 @@ Le chiptune du jour télécharge son module depuis `api.modarchive.org`, seuleme
 
 Le lecteur `chiptune3` 0.8.10 (MIT, avec libopenmpt sous licence BSD) est copié dans `vendor/chiptune3/`, sans CDN. Pour le mettre à jour, remplace les fichiers `chiptune3.js`, `chiptune3.worklet.js`, `libopenmpt.worklet.js` et `LICENSE` par ceux du paquet npm `chiptune3`.
 
+## Numéro de version
+
+Le bas de page affiche `v0.0.N` en petit gras. `build.py` calcule `N` avec `git rev-list --count HEAD` moins `BASE_COMMITS` : chaque commit l'incrémente, et le commit qui a introduit ce numéro est la version 0.0.1. Ce numéro est indépendant des tags posés à la main. Le job `build` de `publish.yml` récupère l'historique complet (`fetch-depth: 0`), sinon le compte serait faux. Sans git, la page affiche `v0.0.0`.
+
 ## Prévisualiser en local
 
 ```bash
