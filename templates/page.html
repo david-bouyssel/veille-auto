@@ -428,7 +428,7 @@
     volEl.value = vol;
     box.hidden = false;
 
-    var ctx = null, player = null, state = "stop", dur = 0;
+    var ctx = null, player = null, state = "stop", dur = 0, offset = 0, last = null;
     function mmss(t) { t = Math.max(0, Math.floor(t || 0)); return Math.floor(t / 60) + ":" + pad(t % 60); }
     function setState(s, label) {
       state = s; btn.disabled = s === "load";
@@ -456,8 +456,15 @@
         player.gain.connect(ctx.destination);
         player.setVol(vol);
         player.onInitialized(function () { player.load(M.fichier); });
-        player.onMetadata(function (meta) { dur = (meta && meta.dur) || 0; setState("play"); });
-        player.onProgress(function (p) { timeEl.textContent = mmss(p.pos) + (dur ? " / " + mmss(dur) : ""); });
+        player.onMetadata(function (meta) { dur = (meta && meta.dur) || 0; offset = 0; last = null; setState("play"); });
+        player.onProgress(function (p) {
+          // libopenmpt compte le temps sans fin : à chaque boucle, la position dans le morceau
+          // (ordre, ligne) revient en arrière, et le compteur repart de zéro.
+          var back = last && (p.order < last.order || (p.order === last.order && p.row < last.row));
+          if (back && dur && p.pos - offset > dur - 5) offset = p.pos;
+          last = { order: p.order, row: p.row };
+          timeEl.textContent = mmss(p.pos - offset) + (dur ? " / " + mmss(dur) : "");
+        });
         player.onError(function (e) {
           fail(e && e.type === "Load" ? "Téléchargement impossible" : "Lecture impossible", e);
         });

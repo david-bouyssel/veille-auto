@@ -30,7 +30,7 @@ DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 MOD_FORMATS = {"MOD", "XM", "IT", "S3M"}
 # Version affichée en bas de page : 0.0.N, N = commits depuis BASE_COMMITS.
 # Le commit qui a introduit ce numéro est la version 0.0.1. Indépendant des tags.
-BASE_COMMITS = 17
+BASE_COMMITS = 22
 
 REQUIRED = ("rubrique", "source", "titre", "resume", "pourquoi", "url")
 
@@ -164,6 +164,24 @@ def mod_du_jour(mods_cfg: dict, day: str) -> dict | None:
     }
 
 
+def copy_vendor() -> None:
+    """Copie vendor/ dans docs/vendor/, en sautant les fichiers déjà identiques.
+
+    Sous Windows, un fichier chargé par le navigateur de prévisualisation est verrouillé :
+    le réécrire à l'identique ferait échouer le build.
+    """
+    if not VENDOR.is_dir():
+        return
+    for src in VENDOR.rglob("*"):
+        if not src.is_file():
+            continue
+        dst = DOCS / "vendor" / src.relative_to(VENDOR)
+        if dst.exists() and dst.read_bytes() == src.read_bytes():
+            continue
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, dst)
+
+
 def to_script_json(data: object) -> str:
     raw = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     return raw.replace("</", "<\\/").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
@@ -230,8 +248,7 @@ def main() -> int:
     template = TEMPLATE.read_text(encoding="utf-8")
     (DOCS / "editions").mkdir(parents=True, exist_ok=True)
     (DOCS / ".nojekyll").write_text("", encoding="utf-8")
-    if VENDOR.is_dir():
-        shutil.copytree(VENDOR, DOCS / "vendor", dirs_exist_ok=True)
+    copy_vendor()
     for idx, ed in enumerate(editions):
         out = DOCS / "editions" / f"{ed['date']}.html"
         out.write_text(render(template, cfg, mods_cfg, editions, idx, is_index=False), encoding="utf-8")
