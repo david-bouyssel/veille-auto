@@ -28,8 +28,12 @@ VENDOR = ROOT / "vendor"
 
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 MOD_FORMATS = {"MOD", "XM", "IT", "S3M"}
-# Version affichée en bas de page : 0.0.N, N = commits depuis BASE_COMMITS.
-# Le commit qui a introduit ce numéro est la version 0.0.1. Indépendant des tags.
+# Version affichée en bas de page : MAJEUR.MINEUR.N, N = commits depuis BASE_COMMITS.
+# N n'a pas de plafond (0.0.9 puis 0.0.10). MAJEUR et MINEUR ne changent qu'à la demande
+# de l'auteur ; à ce moment-là, remettre BASE_COMMITS au nombre de commits courant.
+# Indépendant des tags.
+VERSION_MAJEUR = 0
+VERSION_MINEUR = 0
 BASE_COMMITS = 22
 
 REQUIRED = ("rubrique", "source", "titre", "resume", "pourquoi", "url")
@@ -40,9 +44,9 @@ def version() -> str:
     try:
         out = subprocess.run(["git", "rev-list", "--count", "HEAD"], cwd=ROOT, capture_output=True,
                              text=True, check=True).stdout.strip()
-        return f"0.0.{max(int(out) - BASE_COMMITS, 0)}"
+        return f"{VERSION_MAJEUR}.{VERSION_MINEUR}.{max(int(out) - BASE_COMMITS, 0)}"
     except (OSError, subprocess.CalledProcessError, ValueError):
-        return "0.0.0"
+        return f"{VERSION_MAJEUR}.{VERSION_MINEUR}.0"
 
 
 def check_item(item: object, where: str, rubriques: set[str]) -> list[str]:

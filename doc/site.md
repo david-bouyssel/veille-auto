@@ -140,7 +140,7 @@ Le lecteur `chiptune3` 0.8.10 (MIT, avec libopenmpt sous licence BSD) est copié
 
 ## Numéro de version
 
-Le bas de page affiche `v0.0.N` en petit gras. `build.py` calcule `N` avec `git rev-list --count HEAD` moins `BASE_COMMITS` : chaque commit l'incrémente, et le commit qui a introduit ce numéro est la version 0.0.1. Ce numéro est indépendant des tags posés à la main. Le job `build` de `publish.yml` récupère l'historique complet (`fetch-depth: 0`), sinon le compte serait faux. Sans git, la page affiche `v0.0.0`.
+Le bas de page affiche `v0.0.N` en petit gras. `build.py` calcule `N` avec `git rev-list --count HEAD` moins `BASE_COMMITS` : chaque commit l'incrémente, et le commit qui a introduit ce numéro est la version 0.0.1. `N` n'a pas de plafond (0.0.9 puis 0.0.10). Les deux premiers chiffres (`VERSION_MAJEUR`, `VERSION_MINEUR`) ne changent qu'à la demande de l'auteur ; on remet alors `BASE_COMMITS` au nombre de commits courant pour repartir de 0. Ce numéro est indépendant des tags posés à la main. Le job `build` de `publish.yml` récupère l'historique complet (`fetch-depth: 0`), sinon le compte serait faux. Sans git, la page affiche `v0.0.0`.
 
 ## Prévisualiser en local
 
